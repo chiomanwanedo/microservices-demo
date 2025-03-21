@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: microservices-app
+  namespace: argocd  # ✅ ArgoCD's namespace
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/chiomanwanedo/microservices-demo.git  # ✅ Replace with your actual repo URL
+    targetRevision: main  # ✅ Branch name
+    path: kustomize       # ✅ The folder containing your kustomization.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default    # ✅ Target namespace for deployment
+  syncPolicy:
+    automated:
+      prune: true         # ✅ Automatically delete resources removed from Git
+      selfHeal: true      # ✅ Automatically fix drift if cluster changes
