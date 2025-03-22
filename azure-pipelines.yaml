@@ -22,10 +22,10 @@ variables:
 
 stages:
   - stage: BuildAndPush
-    displayName: 'Build and Push Docker Images'
+    displayName: 'Build and Push All Microservices'
     jobs:
       - job: DockerBuild
-        displayName: 'Build & Push Microservices'
+        displayName: 'Build & Push Docker Images'
         pool:
           vmImage: 'ubuntu-latest'
 
@@ -36,9 +36,9 @@ stages:
             displayName: 'Login to ACR'
             inputs:
               command: login
-              containerRegistry: 'online-boutique'  
+              containerRegistry: 'Your-Service-Connection-Name'  # 🔥 Replace with your exact service connection name
 
-          # Loop through services and build/push each one
+          # Loop through all microservices and build/push images
           - ${{ each service in parameters.services }}:
               - task: Docker@2
                 displayName: 'Build and Push ${{ service }}'
@@ -46,5 +46,5 @@ stages:
                   command: buildAndPush
                   repository: '${{ service }}'
                   dockerfile: 'microservices/${{ service }}/Dockerfile'
-                  containerRegistry: 'online-boutique'  # 🔥 Replace here too
+                  containerRegistry: 'Your-Service-Connection-Name'
                   tags: '$(imageTag)'
