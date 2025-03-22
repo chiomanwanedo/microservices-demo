@@ -28,8 +28,10 @@ stages:
     jobs:
       - job: DockerBuild
         displayName: 'Build & Push Docker Images'
+        # ✅ Use your self-hosted agent pool name here
         pool:
-          vmImage: 'ubuntu-latest'
+          name: 'Default'  # 🔥 Replace with your agent pool name if different
+
         steps:
           - checkout: self
 
@@ -37,9 +39,9 @@ stages:
             displayName: 'Login to ACR'
             inputs:
               command: login
-              containerRegistry: 'online-boutique'  # 🔥 Replace this
+              containerRegistry: 'online-boutique'  # 🔥 Replace this with your actual service connection name
 
-          # Correct way to loop that Azure DevOps accepts as an array of steps
+          # ✅ Loop through services dynamically
           - ${{ each service in parameters.services }}:
               - task: Docker@2
                 displayName: 'Build and Push ${{ service }}'
@@ -47,5 +49,5 @@ stages:
                   command: buildAndPush
                   repository: '${{ service }}'
                   dockerfile: 'microservices/${{ service }}/Dockerfile'
-                  containerRegistry: 'online-boutique'
+                  containerRegistry: 'online-boutique' # 🔥 Same here
                   tags: '$(imageTag)'
