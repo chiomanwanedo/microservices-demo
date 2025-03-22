@@ -1,0 +1,50 @@
+trigger:
+  branches:
+    include:
+      - main
+
+parameters:
+  services:
+    - adservice
+    - cartservice
+    - checkoutservice
+    - currencyservice
+    - emailservice
+    - frontend
+    - paymentservice
+    - productcatalogservice
+    - recommendationservice
+    - shippingservice
+
+variables:
+  azureContainerRegistry: 'chiomaacr.azurecr.io'
+  imageTag: '$(Build.BuildId)'
+
+stages:
+  - stage: BuildAndPush
+    displayName: 'Build and Push Docker Images'
+    jobs:
+      - job: DockerBuild
+        displayName: 'Build & Push Microservices'
+        pool:
+          vmImage: 'ubuntu-latest'
+
+        steps:
+          - checkout: self
+
+          - task: Docker@2
+            displayName: 'Login to ACR'
+            inputs:
+              command: login
+              containerRegistry: 'online-boutique'  
+
+          # Loop through services and build/push each one
+          - ${{ each service in parameters.services }}:
+              - task: Docker@2
+                displayName: 'Build and Push ${{ service }}'
+                inputs:
+                  command: buildAndPush
+                  repository: '${{ service }}'
+                  dockerfile: 'microservices/${{ service }}/Dockerfile'
+                  containerRegistry: 'online-boutique'  # 🔥 Replace here too
+                  tags: '$(imageTag)'
