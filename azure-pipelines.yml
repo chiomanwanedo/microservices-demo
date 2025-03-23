@@ -11,5 +11,5 @@ stages:
           name: 'Default'
         steps:
           - checkout: self
-          - script: echo "✅ Pipeline is connected and running!"
+          - script: echo "✅ Hello Chioma, your pipeline runs!"
             displayName: 'Test Echo'
