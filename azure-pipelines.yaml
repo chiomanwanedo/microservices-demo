@@ -9,23 +9,13 @@ parameters:
     default:
       - adservice
       - cartservice
-      - checkoutservice
-      - currencyservice
-      - emailservice
-      - frontend
-      - loadgenerator
-      - paymentservice
-      - productcatalogservice
-      - recommendationservice
-      - shippingservice
-      - shoppingassistantservice
 
 stages:
   - stage: BuildAndPush
     jobs:
       - job: DockerBuild
         pool:
-          name: 'Default'  # Your self-hosted agent pool name
+          name: 'Default'
         steps:
           - checkout: self
 
@@ -33,17 +23,19 @@ stages:
             displayName: 'Login to ACR'
             inputs:
               command: login
-              containerRegistry: 'online-boutique'  # Your ACR service connection name
+              containerRegistry: 'online-boutique'
 
-          - script: echo "Services = ${{ format('{0}', parameters.services) }}"
-            displayName: 'Print Services List'
+          # ✅ DO NOT add a dash before ${{ each }}
+          ${{ each service in parameters.services }}:
+            - script: echo "Service: ${{ service }}"
+              displayName: 'Print Service ${{ service }}'
 
-          - ${{ each service in parameters.services }}:
-              - task: Docker@2
-                displayName: 'Build and Push ${{ service }}'
-                inputs:
-                  command: buildAndPush
-                  repository: '${{ service }}'
-                  dockerfile: 'src/${{ service }}/Dockerfile'
-                  containerRegistry: 'online-boutique'
-                  tags: '$(Build.BuildId)'
+          ${{ each service in parameters.services }}:
+            - task: Docker@2
+              displayName: 'Build and Push ${{ service }}'
+              inputs:
+                command: buildAndPush
+                repository: '${{ service }}'
+                dockerfile: 'src/${{ service }}/Dockerfile'
+                containerRegistry: 'online-boutique'
+                tags: '$(Build.BuildId)'
