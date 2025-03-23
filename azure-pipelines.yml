@@ -9,21 +9,11 @@ parameters:
     default:
       - adservice
       - cartservice
-      - checkoutservice
-      - currencyservice
-      - emailservice
-      - frontend
-      - loadgenerator
-      - paymentservice
-      - productcatalogservice
-      - recommendationservice
-      - shippingservice
-      - shoppingassistantservice
 
 stages:
-  - stage: BuildAndPush
+  - stage: Build
     jobs:
-      - job: DockerBuild
+      - job: BuildJob
         pool:
           name: 'Default'
         steps:
@@ -36,7 +26,7 @@ stages:
               containerRegistry: 'online-boutique'
 
           - ${{ each service in parameters.services }}:
-            - script: echo "Service: ${{ service }}"
+            - script: echo "Building ${{ service }}"
               displayName: 'Print ${{ service }}'
 
           - task: Docker@2
@@ -47,14 +37,3 @@ stages:
               dockerfile: 'src/adservice/Dockerfile'
               containerRegistry: 'online-boutique'
               tags: '$(Build.BuildId)'
-
-          # Full loop commented for now
-          # - ${{ each service in parameters.services }}:
-          #     - task: Docker@2
-          #       displayName: 'Build and Push ${{ service }}'
-          #       inputs:
-          #         command: buildAndPush
-          #         repository: '${{ service }}'
-          #         dockerfile: 'src/${{ service }}/Dockerfile'
-          #         containerRegistry: 'online-boutique'
-          #         tags: '$(Build.BuildId)'
