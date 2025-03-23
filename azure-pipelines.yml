@@ -10,6 +10,13 @@ parameters:
       - adservice
       - cartservice
       - checkoutservice
+      - currencyservice
+      - emailservice
+      - frontend
+      - paymentservice
+      - productcatalogservice
+      - recommendationservice
+      - shippingservice
 
 stages:
   - stage: BuildAndPush
@@ -18,21 +25,28 @@ stages:
         pool:
           name: 'Default'
         steps:
-          - checkout: self
+          - checkout: self  # This checks out Repo A where the pipeline YAML lives
 
-          - task: Docker@2
-            displayName: 'Login to ACR'
-            inputs:
-              command: login
-              containerRegistry: 'online-boutique'
+          # ✅ Clone your microservices repo (Repo B)
+          - script: |
+              git clone https://github.com/chiomanwanedo/microservices-demo.git
+            displayName: 'Clone Microservices Repo'
 
+          # ✅ Run Gradle build inside Repo B to download dependencies
+          - script: |
+              cd microservices-demo
+              chmod +x gradlew
+              ./gradlew build --refresh-dependencies
+            displayName: 'Run Gradle Build and Pre-fetch Dependencies'
+
+          # ✅ Loop through each microservice and build Docker images
           - ${{ each service in parameters.services }}:
               - task: Docker@2
-                displayName: 'Build and Push ${{ service }}'
+                displayName: 'Build and Push ${{ service }} Docker Image'
                 inputs:
                   command: buildAndPush
-                  repository: '${{ service }}'
-                  dockerfile: 'src/${{ service }}/Dockerfile'
+                  dockerfile: 'microservices-demo/src/${{ service }}/Dockerfile'
                   containerRegistry: 'online-boutique'
+                  repository: '${{ service }}'
                   tags: '$(Build.BuildId)'
                   platform: 'linux/amd64'
