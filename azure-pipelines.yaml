@@ -35,7 +35,7 @@ stages:
               command: login
               containerRegistry: 'online-boutique'  # Your ACR service connection name
 
-          - script: echo "Services = ${{ parameters.services }}"
+          - script: echo "Services = ${{ format('{0}', parameters.services) }}"
             displayName: 'Print Services List'
 
           - ${{ each service in parameters.services }}:
