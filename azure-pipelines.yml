@@ -3,30 +3,13 @@ trigger:
     include:
       - main
 
-parameters:
-  - name: services
-    type: object
-    default:
-      - adservice
-      - cartservice
-      - checkoutservice
-      - currencyservice
-      - emailservice
-      - frontend
-      - paymentservice
-      - productcatalogservice
-      - recommendationservice
-      - shippingservice
-
 stages:
-  - stage: Build
+  - stage: Test
     jobs:
-      - job: BuildJob
+      - job: EchoJob
         pool:
           name: 'Default'
         steps:
           - checkout: self
-
-          - ${{ each service in parameters.services }}:
-              - script: echo "Building microservice: ${{ service }}"
-                displayName: "Print ${{ service }}"
+          - script: echo "✅ Pipeline runs. Loop coming next."
+            displayName: 'Test Echo'
