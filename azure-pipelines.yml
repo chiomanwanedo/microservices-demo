@@ -36,7 +36,7 @@ stages:
               containerRegistry: 'online-boutique'
 
           - ${{ each service in parameters.services }}:
-              - script: echo "Building microservice: ${{ service }}"
+              - script: echo "Building ${{ service }}"
                 displayName: 'Print ${{ service }}'
 
           - ${{ each service in parameters.services }}:
