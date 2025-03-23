@@ -35,16 +35,28 @@ stages:
               command: login
               containerRegistry: 'online-boutique'
 
+          # ✅ Print services loop
           - ${{ each service in parameters.services }}:
-              - script: echo "Building ${{ service }}"
+              - script: echo "Service: ${{ service }}"
                 displayName: 'Print ${{ service }}'
 
-          - ${{ each service in parameters.services }}:
-              - task: Docker@2
-                displayName: 'Build and Push ${{ service }}'
-                inputs:
-                  command: buildAndPush
-                  repository: '${{ service }}'
-                  dockerfile: 'src/${{ service }}/Dockerfile'
-                  containerRegistry: 'online-boutique'
-                  tags: '$(Build.BuildId)'
+          # ✅ Hard-coded Docker build to test
+          - task: Docker@2
+            displayName: 'Hard Build adservice'
+            inputs:
+              command: buildAndPush
+              repository: 'adservice'
+              dockerfile: 'src/adservice/Dockerfile'
+              containerRegistry: 'online-boutique'
+              tags: '$(Build.BuildId)'
+
+          # 🔄 (Commented) Full loop to troubleshoot later
+          # - ${{ each service in parameters.services }}:
+          #     - task: Docker@2
+          #       displayName: 'Build and Push ${{ service }}'
+          #       inputs:
+          #         command: buildAndPush
+          #         repository: '${{ service }}'
+          #         dockerfile: 'src/${{ service }}/Dockerfile'
+          #         containerRegistry: 'online-boutique'
+          #         tags: '$(Build.BuildId)'
