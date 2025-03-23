@@ -1,3 +1,25 @@
+trigger:
+  branches:
+    include:
+      - main
+
+parameters:
+  - name: services
+    type: object
+    default:
+      - adservice
+      - cartservice
+      - checkoutservice
+      - currencyservice
+      - emailservice
+      - frontend
+      - loadgenerator
+      - paymentservice
+      - productcatalogservice
+      - recommendationservice
+      - shippingservice
+      - shoppingassistantservice
+
 stages:
   - stage: BuildAndPush
     jobs:
@@ -14,8 +36,8 @@ stages:
               containerRegistry: 'online-boutique'
 
           - ${{ each service in parameters.services }}:
-              - script: echo "Service: ${{ service }}"
-                displayName: 'Print Service ${{ service }}'
+              - script: echo "Building ${{ service }}"
+                displayName: 'Print ${{ service }}'
 
           - ${{ each service in parameters.services }}:
               - task: Docker@2
