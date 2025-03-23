@@ -9,14 +9,6 @@ parameters:
     default:
       - adservice
       - cartservice
-      - checkoutservice
-      - currencyservice
-      - emailservice
-      - frontend
-      - paymentservice
-      - productcatalogservice
-      - recommendationservice
-      - shippingservice
 
 stages:
   - stage: Build
@@ -27,7 +19,6 @@ stages:
         steps:
           - checkout: self
 
-          # ✅ Correct use of the loop with the dash to prevent the mapping error
           - ${{ each service in parameters.services }}:
-              - script: echo "Building microservice: ${{ service }}"
-                displayName: 'Print ${{ service }}'
+            - script: echo "Building microservice: ${{ service }}"
+              displayName: "Print ${{ service }}"
