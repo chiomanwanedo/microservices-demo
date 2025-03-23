@@ -9,6 +9,7 @@ parameters:
     default:
       - adservice
       - cartservice
+      - checkoutservice
 
 stages:
   - stage: BuildAndPush
@@ -24,10 +25,6 @@ stages:
             inputs:
               command: login
               containerRegistry: 'online-boutique'
-
-          - ${{ each service in parameters.services }}:
-              - script: echo "Building microservice: ${{ service }}"
-                displayName: 'Print ${{ service }}'
 
           - ${{ each service in parameters.services }}:
               - task: Docker@2
