@@ -29,7 +29,7 @@ stages:
     jobs:
       - job: DockerBuild
         pool:
-          name: 'ChiomaSelfHosted'
+          name: 'Default'
         steps:
           - checkout: self
 
@@ -37,7 +37,7 @@ stages:
             displayName: 'Login to ACR'
             inputs:
               command: login
-              containerRegistry: 'Your-Service-Connection-Name'
+              containerRegistry: 'online-boutique'
 
           - ${{ each service in parameters.services }}:
               - task: Docker@2
@@ -46,5 +46,5 @@ stages:
                   command: buildAndPush
                   repository: '${{ service }}'
                   dockerfile: 'src/${{ service }}/Dockerfile'
-                  containerRegistry: 'Your-Service-Connection-Name'
+                  containerRegistry: 'online-boutique'
                   tags: '$(Build.BuildId)'
