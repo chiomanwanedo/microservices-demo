@@ -9,6 +9,14 @@ parameters:
     default:
       - adservice
       - cartservice
+      - checkoutservice
+      - currencyservice
+      - emailservice
+      - frontend
+      - paymentservice
+      - productcatalogservice
+      - recommendationservice
+      - shippingservice
 
 stages:
   - stage: Build
@@ -20,5 +28,5 @@ stages:
           - checkout: self
 
           - ${{ each service in parameters.services }}:
-            - script: echo "Building microservice: ${{ service }}"
-              displayName: "Print ${{ service }}"
+              - script: echo "Building microservice: ${{ service }}"
+                displayName: "Print ${{ service }}"
