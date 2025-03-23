@@ -26,12 +26,10 @@ variables:
 
 stages:
   - stage: BuildAndPush
-    displayName: 'Build and Push Microservices'
     jobs:
       - job: DockerBuild
-        displayName: 'Build & Push Docker Images'
         pool:
-          name: 'Default'   # ✅ Use your self-hosted agent pool
+          name: 'ChiomaSelfHosted'
         steps:
           - checkout: self
 
@@ -39,9 +37,8 @@ stages:
             displayName: 'Login to ACR'
             inputs:
               command: login
-              containerRegistry: 'online-boutique'  # ✅ Replace with your ACR service connection name
+              containerRegistry: 'Your-Service-Connection-Name'
 
-          # ✅ Loop through each microservice in /src
           - ${{ each service in parameters.services }}:
               - task: Docker@2
                 displayName: 'Build and Push ${{ service }}'
@@ -49,5 +46,5 @@ stages:
                   command: buildAndPush
                   repository: '${{ service }}'
                   dockerfile: 'src/${{ service }}/Dockerfile'
-                  containerRegistry: 'online-boutique'
-                  tags: '$(imageTag)'
+                  containerRegistry: 'Your-Service-Connection-Name'
+                  tags: '$(Build.BuildId)'
