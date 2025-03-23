@@ -36,7 +36,7 @@ stages:
               containerRegistry: 'online-boutique'
 
           - ${{ each service in parameters.services }}:
-              - script: echo "Building ${{ service }}"
+              - script: echo "Building microservice: ${{ service }}"
                 displayName: 'Print ${{ service }}'
 
           - ${{ each service in parameters.services }}:
@@ -48,3 +48,4 @@ stages:
                   dockerfile: 'src/${{ service }}/Dockerfile'
                   containerRegistry: 'online-boutique'
                   tags: '$(Build.BuildId)'
+                  platform: 'linux/amd64'
