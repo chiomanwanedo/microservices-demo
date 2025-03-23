@@ -13,10 +13,12 @@ parameters:
       - currencyservice
       - emailservice
       - frontend
+      - loadgenerator
       - paymentservice
       - productcatalogservice
       - recommendationservice
       - shippingservice
+      - shoppingassistantservice
 
 variables:
   azureContainerRegistry: 'chiomaacr.azurecr.io'
@@ -24,14 +26,12 @@ variables:
 
 stages:
   - stage: BuildAndPush
-    displayName: 'Build and Push All Microservices'
+    displayName: 'Build and Push Microservices'
     jobs:
       - job: DockerBuild
         displayName: 'Build & Push Docker Images'
-        # ✅ Use your self-hosted agent pool name here
         pool:
-          name: 'Default'  # 🔥 Replace with your agent pool name if different
-
+          name: 'Default'   # ✅ Use your self-hosted agent pool
         steps:
           - checkout: self
 
@@ -39,15 +39,15 @@ stages:
             displayName: 'Login to ACR'
             inputs:
               command: login
-              containerRegistry: 'online-boutique'  # 🔥 Replace this with your actual service connection name
+              containerRegistry: 'online-boutique'  # ✅ Replace with your ACR service connection name
 
-          # ✅ Loop through services dynamically
+          # ✅ Loop through each microservice in /src
           - ${{ each service in parameters.services }}:
               - task: Docker@2
                 displayName: 'Build and Push ${{ service }}'
                 inputs:
                   command: buildAndPush
                   repository: '${{ service }}'
-                  dockerfile: 'microservices/${{ service }}/Dockerfile'
-                  containerRegistry: 'online-boutique' # 🔥 Same here
+                  dockerfile: 'src/${{ service }}/Dockerfile'
+                  containerRegistry: 'online-boutique'
                   tags: '$(imageTag)'
