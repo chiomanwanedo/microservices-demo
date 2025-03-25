@@ -4,7 +4,7 @@ parameters:
   displayName: 'adservice'
 - name: imageTag
   type: string
-  displayName: 'Docker Image Tag (e.g., 456, latest)'
+  displayName: 'latest'
 
 trigger: none  # Manual trigger or CI trigger passing params
 
