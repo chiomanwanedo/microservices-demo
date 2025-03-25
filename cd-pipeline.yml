@@ -3,7 +3,7 @@ parameters:
   type: object
   displayName: 'List of services and image tags'
 
-trigger: none  # Run manually or trigger from CI
+trigger: none  # Manual trigger or CI trigger passing params
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -14,18 +14,30 @@ variables:
 steps:
 - checkout: self
 
-# Loop through each service and update its deployment manifest
+# ✅ Optional Debug - Check what's received
+- script: |
+    echo "✅ DEBUG: Services received => ${{ convertToJson(parameters.services) }}"
+  displayName: 'DEBUG - Print received services'
+
+# ✅ Fail fast if services is empty
+- ${{ if eq(length(parameters.services), 0) }}:
+  - script: |
+      echo "❌ ERROR: No services provided. Please pass the services parameter."
+      exit 1
+    displayName: 'FAIL - Missing services input'
+
+# ✅ Loop through each service and update its deployment YAML
 - ${{ each service in parameters.services }}:
   - script: |
-      echo "Updating image for ${{ service.name }} to tag ${{ service.imageTag }}"
-      sed -i "s|image: $(acrName)/${{ service.name }}:.*|image: $(acrName)/${{ service.name }}:${{ service.imageTag }}|" k8s/${{ service.name }}-deployment.yaml
+      echo "✅ Updating image for ${{ service.name }} to tag ${{ service.imageTag }}"
+      sed -i "s|image: $(acrName)/${{ service.name }}:.*|image: $(acrName)/${{ service.name }}:${{ service.imageTag }}|" kubernetes-manifests/${{ service.name }}.yaml
     displayName: 'Update Image Tag for ${{ service.name }}'
 
-# Commit and push the changes back to the GitOps repo
+# ✅ Commit and push the changes back to the repo (ArgoCD will auto-sync)
 - script: |
     git config user.name "chiomanwanedo"
     git config user.email "chiomavanessa8@gmail.com"
-    git add k8s/*-deployment.yaml
-    git commit -m "Update image tags for multiple services"
+    git add kubernetes-manifests/*.yaml
+    git commit -m "✅ Update image tags for multiple services"
     git push origin main
   displayName: 'Commit and Push Updated Manifests'
