@@ -17,7 +17,7 @@ steps:
   clean: true
   fetchDepth: 0
 
-# ✅ Optional Debug - Check received services
+# ✅ Optional Debug - Print received services
 - script: |
     echo "✅ DEBUG: Services received => ${{ convertToJson(parameters.services) }}"
   displayName: 'DEBUG - Print received services'
@@ -29,46 +29,44 @@ steps:
       exit 1
     displayName: 'FAIL - Missing services input'
 
-# ✅ Loop through each service, update image if YAML file exists
+# ✅ Update image and force timestamp change to trigger Git commit
 - ${{ each service in parameters.services }}:
   - script: |
       file="kubernetes-manifests/${{ service.name }}.yaml"
       if [[ -f "$file" ]]; then
         echo "✅ Updating image for ${{ service.name }} to tag ${{ service.imageTag }}"
         sed -i "s|image: $(acrName)/${{ service.name }}:.*|image: $(acrName)/${{ service.name }}:${{ service.imageTag }}|" "$file"
+        
+        # ✅ Force a Git change by appending timestamp comment
+        echo "✅ Appending timestamp to force Git change"
+        echo "# Deployed on $(date -u)" >> "$file"
       else
         echo "⚠️ $file not found. Skipping."
       fi
-    displayName: 'Update Image Tag for ${{ service.name }} if YAML exists'
+    displayName: 'Update Image Tag and Force Change for ${{ service.name }}'
 
-# ✅ Commit and push the changes back to the repo (with dynamic branch handling)
+# ✅ Commit and push with dynamic branch detection
 - script: |
-    # Detect current branch or fallback to main
     branch=$(git rev-parse --abbrev-ref HEAD)
     echo "✅ Current branch is: $branch"
 
-    # If detached HEAD, checkout main or recreate it
+    # Handle detached HEAD
     if [[ "$branch" == "HEAD" ]]; then
       echo "⚠️ Detached HEAD. Checking out main branch..."
       git checkout main || git checkout -b main
       branch="main"
     fi
 
-    # Git user config
     git config user.name "chiomanwanedo"
     git config user.email "chiomavanessa8@gmail.com"
-
-    # Add changes if any
     git add kubernetes-manifests/*.yaml
 
-    # Commit only if changes exist
     if git diff --cached --quiet; then
       echo "✅ No changes to commit."
     else
-      git commit -m '✅ Update image tags for multiple services'
+      git commit -m '✅ Update image tags and deployment timestamp'
       echo "✅ Committed changes."
     fi
 
-    # Push changes
     git push origin $branch || echo "✅ Nothing to push or branch missing."
   displayName: 'Commit and Push Updated Manifests'
