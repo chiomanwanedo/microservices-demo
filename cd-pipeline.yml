@@ -13,8 +13,11 @@ variables:
 
 steps:
 - checkout: self
+  persistCredentials: true
+  clean: true
+  fetchDepth: 0
 
-# ✅ Optional Debug - Check what's received
+# ✅ Optional Debug - Check received services
 - script: |
     echo "✅ DEBUG: Services received => ${{ convertToJson(parameters.services) }}"
   displayName: 'DEBUG - Print received services'
@@ -26,18 +29,46 @@ steps:
       exit 1
     displayName: 'FAIL - Missing services input'
 
-# ✅ Loop through each service and update its deployment YAML
+# ✅ Loop through each service, update image if YAML file exists
 - ${{ each service in parameters.services }}:
   - script: |
-      echo "✅ Updating image for ${{ service.name }} to tag ${{ service.imageTag }}"
-      sed -i "s|image: $(acrName)/${{ service.name }}:.*|image: $(acrName)/${{ service.name }}:${{ service.imageTag }}|" kubernetes-manifests/${{ service.name }}.yaml
-    displayName: 'Update Image Tag for ${{ service.name }}'
+      file="kubernetes-manifests/${{ service.name }}.yaml"
+      if [[ -f "$file" ]]; then
+        echo "✅ Updating image for ${{ service.name }} to tag ${{ service.imageTag }}"
+        sed -i "s|image: $(acrName)/${{ service.name }}:.*|image: $(acrName)/${{ service.name }}:${{ service.imageTag }}|" "$file"
+      else
+        echo "⚠️ $file not found. Skipping."
+      fi
+    displayName: 'Update Image Tag for ${{ service.name }} if YAML exists'
 
-# ✅ Commit and push the changes back to the repo (ArgoCD will auto-sync)
+# ✅ Commit and push the changes back to the repo (with dynamic branch handling)
 - script: |
+    # Detect current branch or fallback to main
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    echo "✅ Current branch is: $branch"
+
+    # If detached HEAD, checkout main or recreate it
+    if [[ "$branch" == "HEAD" ]]; then
+      echo "⚠️ Detached HEAD. Checking out main branch..."
+      git checkout main || git checkout -b main
+      branch="main"
+    fi
+
+    # Git user config
     git config user.name "chiomanwanedo"
     git config user.email "chiomavanessa8@gmail.com"
+
+    # Add changes if any
     git add kubernetes-manifests/*.yaml
-    git commit -m "✅ Update image tags for multiple services"
-    git push origin main
+
+    # Commit only if changes exist
+    if git diff --cached --quiet; then
+      echo "✅ No changes to commit."
+    else
+      git commit -m '✅ Update image tags for multiple services'
+      echo "✅ Committed changes."
+    fi
+
+    # Push changes
+    git push origin $branch || echo "✅ Nothing to push or branch missing."
   displayName: 'Commit and Push Updated Manifests'
